@@ -1,0 +1,252 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model receipts {
+  id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  subscription_id String    @db.VarChar(255)
+  providerId      String    @map("provider_id") @db.VarChar(255)
+  amount          String    @db.VarChar(255)
+  tax             String    @db.VarChar(255)
+  amount_paid     String    @db.VarChar(255)
+  amount_due      String    @db.VarChar(255)
+  invoice_url     String?   @db.VarChar(255)
+  status          String    @db.VarChar(255)
+  finalized_at    DateTime? @db.Timestamp(0)
+  createdAt       DateTime  @map("created_at") @db.Timestamp(0)
+  updatedAt       DateTime  @map("updated_at") @db.Timestamp(0)
+
+  @@index([providerId], map: "receipts_provider_id_index")
+  @@index([subscription_id])
+}
+
+model subscriptions {
+  id                   BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  userId               BigInt    @map("user_id") @db.UnsignedBigInt
+  planId               Int       @map("plan_id") @db.UnsignedTinyInt
+  stripeId             String    @unique(map: "subscriptions_stripe_id_unique") @map("stripe_id") @db.VarChar(255)
+  stripeStatus         String    @map("stripe_status") @db.VarChar(255)
+  stripePrice          String?   @map("stripe_price") @db.VarChar(255)
+  current_period_start DateTime  @map("current_period_start") @db.Timestamp(0)
+  current_period_end   DateTime  @map("current_period_end") @db.Timestamp(0)
+  endsAt               DateTime? @map("ends_at") @db.Timestamp(0)
+  createdAt            DateTime? @map("created_at") @db.Timestamp(0)
+  updatedAt            DateTime? @map("updated_at") @db.Timestamp(0)
+
+  plan plans @relation(fields: [planId], references: [id])
+
+  @@index([userId, stripeStatus], map: "subscriptions_user_id_stripe_status_index")
+}
+
+model user_generations {
+  id             BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  userId         BigInt    @map("user_id") @db.UnsignedBigInt
+  promptedText   String    @map("prompted_text") @db.Text
+  text           String    @db.Text
+  createdAt      DateTime? @map("created_at") @db.Timestamp(0)
+  updatedAt      DateTime? @map("updated_at") @db.Timestamp(0)
+  type           Int?      @default(0) @db.TinyInt
+  cost           Int?      @default(1) @db.SmallInt
+  users          users     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_generations_user_id_foreign")
+  prompt_options Json?
+
+  @@index([userId], map: "user_generations_user_id_foreign")
+}
+
+model account_deletions {
+  id                  BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  userId              BigInt   @unique @db.UnsignedBigInt
+  email               String   @unique(map: "account_deletions_email_unique") @db.VarChar(255)
+  deletedAt           DateTime @map("deleted_at") @db.Timestamp(0)
+  permanentDeletionAt DateTime @map("permanent_deletion_at") @db.Timestamp(0)
+  users               users    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model users {
+  id                             BigInt                          @id @default(autoincrement()) @db.UnsignedBigInt
+  name                           String?                         @db.VarChar(255)
+  email                          String                          @unique(map: "users_email_unique") @db.VarChar(255)
+  emailVerifiedAt                DateTime?                       @map("email_verified_at") @db.Timestamp(0)
+  password                       String?                         @db.VarChar(255)
+  rememberToken                  String?                         @map("remember_token") @db.VarChar(100)
+  stripeId                       String?                         @map("stripe_id") @db.VarChar(255)
+  pmType                         String?                         @map("pm_type") @db.VarChar(255)
+  pmLastFour                     String?                         @map("pm_last_four") @db.VarChar(4)
+  pmExpiration                   String?                         @map("pm_expiration") @db.VarChar(255)
+  profilePhotoPath               String?                         @map("profile_photo_path") @db.VarChar(2048)
+  createdAt                      DateTime?                       @map("created_at") @db.Timestamp(0)
+  updatedAt                      DateTime?                       @map("updated_at") @db.Timestamp(0)
+  extraCredits                   Int?                            @default(0) @map("extra_credits")
+  referredBy                     String?                         @map("referred_by") @db.VarChar(255)
+  affiliateId                    String                          @unique(map: "users_affiliate_id_unique") @map("affiliate_id") @db.VarChar(255)
+  welcomeCompleted               Boolean?                        @default(false) @map("welcome_completed")
+  userGenerations                user_generations[]
+  emailVerificationTokens        email_verifications[]
+  tweet_searches                 tweet_searches[]
+  apiKeys                        extension_api_keys[]
+  bulk_actions_usage             bulk_actions_usage[]
+  account_deletions              account_deletions?
+  account_deletion_verifications account_deletion_verifications?
+  screenshot_presets             screenshot_presets[]
+
+  @@index([referredBy], map: "users_referred_by_index")
+  @@index([stripeId], map: "users_stripe_id_index")
+}
+
+model extension_api_keys {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  userId     BigInt    @map("user_id") @db.UnsignedBigInt
+  key        String    @unique(map: "extension_api_keys_key_unique") @map("key") @db.VarChar(255)
+  createdAt  DateTime? @map("created_at") @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+  expiresAt  DateTime? @map("expires_at") @db.Timestamp(0)
+  users      users     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "extension_api_keys_user_id_foreign")
+
+  @@index([userId], map: "extension_api_keys_user_id_foreign")
+}
+
+model tweet_searches {
+  id                 BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name               String    @db.VarChar(255)
+  userId             BigInt    @map("user_id") @db.UnsignedBigInt
+  allTheseWords      String?   @map("all_these_words") @db.VarChar(1000)
+  exactMatchPhrase   String?   @map("exact_match_phrase") @db.VarChar(500)
+  anyTheseWords      String?   @map("any_these_words") @db.VarChar(2000)
+  excludedWords      String?   @map("excluded_words") @db.VarChar(1000)
+  hashtags           String?   @db.VarChar(1000)
+  language           String?   @db.VarChar(255)
+  fromAccounts       String?   @map("from_accounts") @db.VarChar(500)
+  toAccounts         String?   @map("to_accounts") @db.VarChar(500)
+  mentionAccounts    String?   @map("mention_accounts") @db.VarChar(500)
+  minLikes           Int?      @map("min_likes")
+  minReplies         Int?      @map("min_replies")
+  minReposts         Int?      @map("min_reposts")
+  repliesFilter      Int       @default(0) @map("replies_filter") @db.TinyInt
+  linksFilter        Int       @default(0) @map("links_filter") @db.TinyInt
+  fromFollowedPeople Boolean   @default(false) @map("from_followed_people")
+  fromNearby         Boolean   @default(false) @map("from_nearby")
+  location           String?   @db.VarChar(500)
+  distance           Int?
+  startDate          DateTime? @map("start_date") @db.Timestamp(0)
+  endDate            DateTime? @map("end_date") @db.Timestamp(0)
+  createdAt          DateTime  @map("created_at") @db.Timestamp(0)
+  updatedAt          DateTime  @map("updated_at") @db.Timestamp(0)
+  users              users     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "tweet_searches_user_id_foreign")
+
+  @@index([userId], map: "tweet_searches_user_id_foreign")
+}
+
+model email_verifications {
+  id           BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  userId       BigInt   @map("user_id") @db.UnsignedBigInt
+  token        String   @unique(map: "email_verifications_token_unique") @map("token") @db.VarChar(255)
+  createdAt    DateTime @map("created_at") @db.Timestamp(0)
+  updated_at   DateTime @db.Timestamp(0)
+  expiresAt    DateTime @map("expires_at") @db.Timestamp(0)
+  users        users    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "email_verifications_user_id_foreign")
+  public_token String   @unique @db.VarChar(255)
+
+  @@index([userId], map: "email_verifications_user_id_foreign")
+}
+
+model account_deletion_verifications {
+  id        BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  userId    BigInt   @unique(map: "user_id") @db.UnsignedBigInt
+  code      Int      @unique(map: "account_deletion_verifications_code_unique") @map("code") @db.UnsignedInt
+  createdAt DateTime @map("created_at") @db.Timestamp(0)
+  expiresAt DateTime @map("expires_at") @db.Timestamp(0)
+  users     users    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "account_deletion_verifications_user_id_foreign")
+
+  @@index([userId], map: "account_deletion_verifications_user_id_foreign")
+}
+
+model password_reset_tokens {
+  id        BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  email     String    @db.VarChar(255)
+  token     String    @unique(map: "password_reset_tokens_token_unique") @map("token") @db.VarChar(255)
+  createdAt DateTime? @map("created_at") @db.Timestamp(0)
+  expiresAt DateTime  @map("expires_at") @db.Timestamp(0)
+
+  @@index([email], map: "password_reset_tokens_email_index")
+}
+
+model public_generations {
+  id        BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  type      Int      @db.TinyInt
+  ipAddress String   @map("ip_address") @db.VarChar(255)
+  createdAt DateTime @map("created_at") @db.Timestamp(0)
+
+  @@index([type, ipAddress])
+}
+
+model plans {
+  id             Int      @id @default(autoincrement()) @db.UnsignedTinyInt
+  name           String   @db.VarChar(255)
+  stripePriceId  String   @unique @map("stripe_price_id") @db.VarChar(255)
+  price          Int      @db.UnsignedInt
+  interval       String   @db.VarChar(255)
+  tweetDeletions Int?     @map("tweet_deletions") @db.UnsignedInt
+  tweetUnlikes   Int?     @map("tweet_unlikes") @db.UnsignedInt
+  tweetLikes     Int?     @map("tweet_likes") @db.UnsignedInt
+  retweets       Int?     @db.UnsignedInt
+  follows        Int?     @db.UnsignedInt
+  unfollows      Int?     @db.UnsignedInt
+  credits        Int      @db.UnsignedInt
+  createdAt      DateTime @map("created_at") @db.Timestamp(0)
+
+  subscriptions subscriptions[]
+}
+
+model bulk_actions_usage {
+  id             Int      @id @default(autoincrement()) @db.UnsignedInt
+  userId         BigInt   @unique @map("user_id") @db.UnsignedBigInt
+  tweetDeletions Int      @map("tweet_deletions") @db.UnsignedInt
+  tweetUnlikes   Int      @map("tweet_unlikes") @db.UnsignedInt
+  tweetLikes     Int      @map("tweet_likes") @db.UnsignedInt
+  retweets       Int      @db.UnsignedInt
+  follows        Int      @db.UnsignedInt
+  unfollows      Int      @db.UnsignedInt
+  createdAt      DateTime @map("created_at") @db.Timestamp(0)
+  updatedAt      DateTime @map("updated_at") @db.Timestamp(0)
+  lastResetOn    DateTime @map("last_reset_on") @db.Timestamp(0)
+
+  user users @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model credits_usage {
+  id           Int      @id @default(autoincrement()) @db.UnsignedInt
+  user_id      BigInt   @unique @db.UnsignedBigInt
+  credits_used Int      @db.UnsignedInt
+  createdAt    DateTime @db.Timestamp(0)
+  updatedAt    DateTime @db.Timestamp(0)
+}
+
+model TwitterSession {
+  id           Int      @id @default(autoincrement())
+  headers      Json
+  cookies      Json
+  created_at   DateTime @default(now())
+  is_valid     Boolean  @default(true)
+  last_used    DateTime @default(now())
+  url          String   @db.VarChar(255)
+  query_params String?  @db.Text
+
+  @@index([is_valid])
+  @@map("twitter_sessions")
+}
+
+model screenshot_presets {
+  id         Int      @id @default(autoincrement()) @db.UnsignedInt
+  userId     BigInt   @map("user_id") @db.UnsignedBigInt
+  presetName String   @map("preset_name") @db.VarChar(255)
+  options    Json
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt  DateTime @default(now()) @map("updated_at") @db.Timestamp(0)
+
+  user users @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}

@@ -1,0 +1,19 @@
+services:
+  production_app-green:
+    container_name: production_app-green
+    build: .
+    env_file:
+      - .env.production
+    restart: always
+    network_mode: 'host'
+    command: sh -c "npx prisma migrate deploy && npm run start -- -p 3001"
+
+  production_app-blue:
+    container_name: production_app-blue
+    build: .
+    env_file:
+      - .env.production
+
+    restart: always
+    network_mode: 'host'
+    command: sh -c "npx prisma migrate deploy && npm run start -- -p 3000"

@@ -1,0 +1,219 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+@plugin '@tailwindcss/forms';
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-danger: #e11d48;
+  --color-primary: #4f46e5;
+  --color-primary-dark: #141b24;
+  --color-primary-lighter-dark: #101721;
+  --color-primary-hover: #3730a3;
+  --color-primary-twitter: #1d9bf0;
+  --color-soft-white: #fafafa;
+  --color-neutral-gray: #44474c;
+  --color-neutral-gray__dark: #e5e6e6;
+  --color-primary-dark-light: #1a202e;
+
+  --color-success-50: #f0fdf4;
+  --color-success-100: #dcfce7;
+  --color-success-200: #bbf7d0;
+  --color-success-300: #86efac;
+  --color-success-400: #4ade80;
+  --color-success-500: #22c55e;
+  --color-success-600: #16a34a;
+  --color-success-700: #15803d;
+  --color-success-800: #166534;
+  --color-success-900: #14532d;
+  --color-success-950: #052e16;
+
+  --color-warning-50: #fefce8;
+  --color-warning-100: #fef9c3;
+  --color-warning-200: #fef08a;
+  --color-warning-300: #fde047;
+  --color-warning-400: #facc15;
+  --color-warning-500: #eab308;
+  --color-warning-600: #ca8a04;
+  --color-warning-700: #a16207;
+  --color-warning-800: #854d0e;
+  --color-warning-900: #713f12;
+  --color-warning-950: #422006;
+
+  --color-dark-mode-gray: #1f2937;
+  --color-dark-mode-border: #374151;
+  --color-warm-light-gray: #f3f4f6;
+  --color-primary-light: #60a5fa;
+  --color-primary-disabled__dark: #8f8be5bf;
+
+  --breakpoint-xs: 420px;
+  --breakpoint-xs2: 340px;
+  --breakpoint-large: 1080px;
+
+  /* Font Family Definitions */
+  --font-family-space-grotesk: 'Space Grotesk', -apple-system,
+    BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-family-rubik: 'Rubik', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
+  --font-family-work-sans: 'Work Sans', -apple-system, BlinkMacSystemFont,
+    'Segoe UI', sans-serif;
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+@utility flex-cc {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@utility flex-c {
+  display: flex;
+  align-items: center;
+}
+
+@utility flex-b {
+  display: flex;
+  justify-content: space-between;
+}
+
+@utility flex-cb {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@utility max-content-w {
+  @apply max-w-7xl;
+}
+
+@utility responsive-pad-navigation {
+  @apply px-6;
+}
+
+@utility responsive-pad {
+  @apply px-6 xs:px-8 sm:px-12 lg:px-16;
+}
+
+@utility prose-custom {
+  line-height: 1.5;
+  @apply max-w-none prose-headings:leading-[1.25] prose-p:text-neutral-gray dark:prose-p:text-neutral-gray__dark prose-strong:text-primary-dark dark:prose-strong:text-white prose-a:text-primary dark:prose-a:text-primary-light prose-li:text-neutral-gray dark:prose-li:text-neutral-gray__dark prose-li:marker:text-primary-dark dark:prose-li:marker:text-white;
+
+  & h1 {
+    @apply mt-0;
+  }
+}
+
+@utility overflow-hidden {
+  overflow: hidden;
+  overflow: hidden;
+}
+
+@utility link-anim {
+  @apply transition-all duration-150 ease-in-out;
+}
+
+@utility cta-shadow {
+  @apply shadow-[2px_2px_7px_0px_#69696969];
+}
+
+/* Font Utility Classes */
+@utility font-space-grotesk {
+  font-family: var(--font-family-space-grotesk);
+}
+
+@utility font-rubik {
+  font-family: var(--font-family-rubik);
+}
+
+@utility font-work-sans {
+  font-family: var(--font-family-work-sans);
+}
+
+@layer utilities {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer utilities {
+  body {
+    @apply text-neutral-gray dark:bg-primary-dark-light dark:text-neutral-gray__dark;
+    scrollbar-width: thin; /* Thin scrollbar */
+    scrollbar-color: #888 #f1f1f1; /* Thumb color and track color */
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply text-primary-dark dark:text-white;
+  }
+  input,
+  textarea {
+    @apply text-primary-dark;
+  }
+}
+
+/* override styles for the tooltips present in rc-tooltip-library */
+.rc-tooltip {
+  opacity: 1 !important;
+}
+.rc-tooltip-inner {
+  @apply flex items-center bg-[#111827] text-white rounded-md py-[6px] px-3 shadow-[1px_0px_4px_0px_#bdbdbd] dark:shadow-[1px_0px_4px_0px_#0b0c0d];
+  display: flex !important;
+  align-items: center !important;
+  background-color: #111827 !important;
+  color: white !important;
+  min-height: auto !important;
+  padding-block: 6px !important;
+  border: none !important;
+  border-radius: 6px !important;
+}
+
+.rc-tooltip-arrow {
+  border-top-color: #111827 !important;
+}
+
+#dashboard-sidebar {
+  scrollbar-color: #44474c #eeeeee;
+  scrollbar-width: thin;
+}
+
+html {
+  visibility: hidden;
+}
+
+html.theme-ready {
+  visibility: visible;
+}
+
+figcaption {
+  @apply hidden;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* For IE, Edge and Firefox */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}

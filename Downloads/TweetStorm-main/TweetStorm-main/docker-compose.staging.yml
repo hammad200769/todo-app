@@ -1,0 +1,40 @@
+services:
+  staging_app:
+    container_name: staging_app
+    build: .
+    ports:
+      - '3005:3000'
+    env_file:
+      - .env.production
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: always
+    networks:
+      - app_network
+    command: sh -c "npx prisma migrate deploy && npm run start"
+
+  db:
+    image: mysql:8.0.39
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+    ports:
+      - '3307:3306'
+    volumes:
+      - mysql_staging_data:/var/lib/mysql
+      # - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+    networks:
+      - app_network
+
+volumes:
+  mysql_staging_data:
+
+networks:
+  app_network:
